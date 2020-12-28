@@ -1,0 +1,333 @@
+openapi: '3.0.2'
+
+info:
+  title: HD PowerView
+  description:
+    REST API definition for the Hunter Douglas PowerView line of motorized shades and
+    blinds. A very incomplete API description can be found on Hunter Douglas' website
+    [here](https://motorisation.hde.nl/hd/powerview/general-guides/API/). Additional
+    information was found in the GitHub repository [drbrain/indigo-powerview](https://github.com/drbrain/indigo-powerview/blob/master/PowerView%20API.md).
+
+
+    Note that this is version 2.x of the PowerView API. Version 1.x was sufficiently
+    different as to cause incompatabilities. Check your hub to verify which version it
+    is using.
+  version: '2.0'
+
+servers:
+  - url: http://192.168.0.148/api
+    description: Local test endpoint
+
+paths:
+
+  #
+  # ROOMS
+  #
+  /rooms:
+
+    #
+    # GET: ROOMS
+    #
+    get:
+      tags:
+      - "Room"
+      summary: "Gets all rooms known to the hub."
+      operationId: getAllRooms
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  roomIds:
+                    type: array
+                    items:
+                      type: integer
+                  roomData:
+                    type: array
+                    items:
+                      $ref: "#/components/schemas/room"
+
+    #
+    # POST: ROOMS
+    #
+    post:
+      tags:
+      - "Room"
+      summary: "Creates a new room."
+      operationId: createRoom
+      parameters:
+      - name: room
+        in: header
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  format: byte
+                colorId:
+                  type: integer
+                iconId:
+                  type: integer
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                properties:
+                  room:
+                    $ref: "#/components/schemas/room"
+
+  #
+  # ROOMS/{ROOMID}
+  #
+  /rooms/{roomId}:
+
+    #
+    # GET: ROOMS/{ROOMID}
+    #
+    get:
+      tags:
+      - "Room"
+      summary: "Find a room by its ID."
+      operationId: getRoomById
+      parameters:
+      - name: roomId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  room:
+                    $ref: "#/components/schemas/room"
+
+    #
+    # PUT: ROOMS/{ROOMID}
+    #
+    put:
+      tags:
+      - "Room"
+      summary: "Updates a room's properties."
+      operationId: updateRoomById
+      parameters:
+      - name: roomId
+        in: path
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  room:
+                    $ref: "#/components/schemas/room"
+
+    #
+    # DELETE: ROOMS/{ROOMID}
+    #
+    delete:
+      tags:
+      - "Room"
+      summary: "Delete a room by its ID."
+      responses:
+        '200':
+          description: OK
+
+
+  /scenes:
+    get:
+      tags:
+      - "Scene"
+      summary: "Gets all scenes known to the hub."
+      responses:
+        '200':
+          description: OK
+    put:
+      tags:
+      - "Scene"
+      summary: "Create a new scene."
+      responses:
+        '200':
+          description: OK
+
+  /scenes/{sceneId}:
+    get:
+      tags:
+      - "Scene"
+      summary: "Finds a scene by its ID."
+      responses:
+        '200':
+          description: OK
+    delete:
+      tags:
+      - "Scene"
+      summary: "Delete a scene by its ID."
+      responses:
+        '200':
+          description: OK
+
+  /shades:
+    get:
+      tags:
+      - "Shade"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  shadeIds:
+                    type: array
+                    items:
+                      type: integer
+                  shadeData:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/shade'
+
+  /shades/{id}:
+    get:
+      tags:
+      - "Shade"
+      parameters:
+      - name: id
+        in: path
+        description: "ID of the shade to get"
+        required: true
+        schema:
+          type: integer
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                properties:
+                  shade:
+                    $ref: "#/components/schemas/shade"
+
+#
+# Components
+#
+
+components:
+  schemas:
+    #
+    # Firmware
+    #
+    firmware:
+      type: object
+      properties:
+        revision:
+          type: integer
+        subRevision:
+          type: integer
+        build:
+          type: integer
+        index:
+          type: integer
+
+    #
+    # Positions
+    #
+    positions:
+      type: object
+      properties:
+        posKind1:
+          type: integer
+        posKind2:
+          type: integer
+        position1:
+          type: integer
+        position2:
+          type: integer
+
+    #
+    # Room
+    #
+    room:
+      type: object
+      properties:
+        order:
+          type: integer
+        name:
+          type: string
+          format: byte
+        colorId:
+          type: integer
+        iconId:
+          type: integer
+        type:
+          type: integer
+        id:
+          type: integer
+
+    #
+    # Shade
+    #
+    shade:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int32
+          minimum: 0
+        type:
+          type: integer
+          format: int32
+          minimum: 0
+        capabilities:
+          type: integer
+        batteryKind:
+          type: integer
+        smartPowerSupply:
+          $ref: "#/components/schemas/smartPowerSupply"
+        batteryStatus:
+          type: integer
+        roomId:
+          type: integer
+        firmware:
+          $ref: "#/components/schemas/firmware"
+        name:
+          type: string
+          format: byte
+        groupId:
+          type: integer
+        positions:
+          $ref: "#/components/schemas/positions"
+
+    #
+    # Smart Power Supply
+    #
+    smartPowerSupply:
+      type: object
+      properties:
+        id:
+          type: integer
+        port:
+          type: integer
+        status:
+          type: integer
+
+tags:
+- name: "Room"
+  description: "A logical grouping of shades."
+- name: "Scene"
+  description: "A grouping of position states."
+- name: "Shade"
+  description: "A motorized shade or blind."
